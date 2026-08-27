@@ -1,7 +1,11 @@
 import React from "react";
-import { Navigate, Outlet } from "react-router/dom";
+import { redirect, Outlet } from "react-router";
+import { useSelector } from "react-redux";
+
 const ProtectedAuth = () => {
-  if (logged) <Navigate to="/dashboard" />;
+  const Login = useSelector((store) => store.auth.isAuthenticated);
+
+  if (Login) redirect("/chat");
   return <Outlet />;
 };
 
