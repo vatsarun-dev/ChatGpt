@@ -1,6 +1,10 @@
 import React from "react";
-
-const router = () => {
+import ProtectedChat from "./ProtectedChat.jsx";
+import ProtectedAuth from "./ProtectedAuth.jsx";
+import Home from "../feature/chat/ui/pages/Home.jsx";
+import Login from "../feature/auth/ui/pages/Login.jsx";
+import Register from "../feature/auth/ui/pages/Register.jsx";
+const Router = () => {
   const routes = createBrowserRouter([
     {
       path: "/chat",
@@ -30,4 +34,4 @@ const router = () => {
   return <RouterProvider router={routes} />;
 };
 
-export default router;
+export default Router;
