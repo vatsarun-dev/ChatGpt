@@ -3,11 +3,11 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import compression from "compression";
 import express from "express";
+import type { Express } from "express";
 import cors from "cors";
-import passport from "passport";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
-export default function securityMiddleware(app) {
+export default function securityMiddleware(app: Express) {
   app.use(morgan("dev"));
   app.use(express.json({ limit: "3mb" }));
   app.use(express.urlencoded({ extended: true, limit: "3mb" }));
@@ -16,10 +16,9 @@ export default function securityMiddleware(app) {
   app.use(
     cors({
       origin: "http://localhost:3000/",
-      withCredential: true,
+      credentials: true,
     }),
   );
-  app.use(passport.initialize());
   app.use(hpp());
   app.use(helmet());
   app.use(compression());

@@ -1,4 +1,6 @@
 import { model, Schema, type InferSchemaType } from "mongoose";
+import type { NextFunction } from "express";
+import bcrypt from "bcrypt";
 const userSchema = Schema(
   {
     name: {
@@ -30,16 +32,14 @@ const userSchema = Schema(
   { timestamps: true },
 );
 
-userSchema.pre("save", async function (next): Promise<void> {
-  if (!this.isModified("password")) return next;
-  this.password = await bcrypt.hashSync(this.password, 10);
+userSchema.pre("save", function (next: NextFunction): void {
+  if (!this.isModified("password")) return next();
+  this.password = bcrypt.hashSync(this.password, 10);
 });
 
-userSchema.methods.comparePassword = async function (
-  password: string,
-): Promise<boolean> {
-  return await bcrypt.compareSync(password, this.password);
+userSchema.methods.comparePassword = function (password: string): boolean {
+  return bcrypt.compareSync(password, this.password);
 };
 
-export type UserDocument = InferSchemaType<typeof userSchema> & { id: string };
+export type UserDocument = InferSchemaType<typeof userSchema>;
 export const userModel = model("userModel", userSchema);

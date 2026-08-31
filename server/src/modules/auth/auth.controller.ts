@@ -1,6 +1,5 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import AuthService from "./auth.service.ts";
-import asyncHandler from "../../utils/asyncHandler.ts";
 export default class AuthController {
   constructor() {
     this.authController = new AuthService();

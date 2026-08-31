@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
-import type { Request, Response, NextFunction, Error } from "express";
-
+import type { Request, Response, NextFunction } from "express";
+import ApiError from "../shared/error/ApiError.ts";
 export default async function errorHandler(
-  err: Error,
+  err: ApiError,
   req: Request,
   res: Response,
   next: NextFunction,

@@ -1,5 +1,10 @@
-import { Request, Response } from "express";
-import { LoginUserRequest, RegisterUserRequest } from "../../types/user.ts";
+import type { Request, Response } from "express";
+import UserRepo from "../../repository/user.repo.ts";
+import type {
+  LoginUserRequest,
+  RegisterUserRequest,
+} from "../../types/user.ts";
+import * as error from "../../shared/error/globalError.ts";
 export default class AuthService {
   constructor() {
     this.authService = new UserRepo();
@@ -12,11 +17,11 @@ export default class AuthService {
 
     const user = await this.authService.findByEmail(String(email));
 
-    if (!user) throw new Error("the user is not register");
+    if (!user) throw new error.NOTFOUNDERROR("the user is not register");
 
-    const compare = comparePassword(password);
+    const compare = await user.comparePassword(password);
 
-    if (!compare) throw new Error("the password  is incorrect");
+    if (!compare) throw new error.UNAUTHORIZED("the password  is incorrect");
 
     return user;
   }
@@ -27,7 +32,8 @@ export default class AuthService {
       throw new Error("all fields are required");
 
     const isExisted = await this.authService.findByEmail(String(email));
-    if (isExisted) throw new Error("the user is already register");
+    if (isExisted)
+      throw new error.ALLREADYEXIST("the user is already register");
     const user = await this.authService.createUser({ name, email, password });
     return user;
   }
