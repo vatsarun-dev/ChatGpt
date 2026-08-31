@@ -1,6 +1,6 @@
 import { userModel } from "../models/user.model.ts";
 
-class UserRepo {
+export default class UserRepo {
   async createUser(input: { name: string; email: string; password: string }) {
     const user = await userModel.create({ input });
     return user;
