@@ -3,11 +3,14 @@ import { useNavigate, Outlet } from "react-router";
 import { useSelector } from "react-redux";
 
 const ProtectedAuth = () => {
-  const Login = useSelector((store) => store.auth.isAuthenticated);
+  const isAuthenticated = useSelector((store) => store.auth.isAuthenticated);
   const navigate = useNavigate();
+  console.log("ProtectedAuth - isAuthenticated:", isAuthenticated); // Better debug
+
   useEffect(() => {
-    if (Login) navigate("/chat");
-  }, [Login, navigate]);
+    if (isAuthenticated) navigate("/chat");
+  }, [isAuthenticated, navigate]);
+
   return <Outlet />;
 };
 

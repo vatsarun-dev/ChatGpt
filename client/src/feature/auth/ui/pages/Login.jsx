@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { logIn } from "../../state/authReducers.jsx";
+import { loginApi } from "../../service/authService.js";
 import { Eye, EyeOff, Mail, LockKeyhole, ArrowRight } from "lucide-react";
 import logo from "../../../../assets/logo.svg";
 
 const Login = () => {
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const {
@@ -14,10 +18,13 @@ const Login = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
-    console.log("Login Data:", data);
-
-    // API call goes here
-    // await loginUser(data);
+    try {
+      const user = await loginApi(data);
+      console.log(user);
+      dispatch(logIn(user.data.user));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

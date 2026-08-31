@@ -202,7 +202,7 @@ const Home = () => {
           <div className="flex flex-1 flex-col items-center justify-center px-4 pb-28">
             {/* AI Logo */}
             <div className="mb-0 flex justify-center">
-              <img src={logo} alt="ChatGPT Logo" className="h-15 w-15" />
+              <img src={logo} alt="ChatGPT Logo" className="h-15 w-15gt" />
             </div>
 
             <h1 className="text-center text-2xl font-semibold tracking-tight text-white sm:text-3xl">

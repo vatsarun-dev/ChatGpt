@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { logIn } from "../../state/authReducers.jsx";
+
 import logo from "../../../../assets/logo.svg";
+import { registerApi } from "../../service/authService.js";
 
 import {
   User,
@@ -26,12 +30,17 @@ const Register = () => {
   const navigate = useNavigate();
 
   const password = watch("password");
+  const dispatch = useDispatch();
 
   const onSubmit = async (data) => {
-    console.log("Registration Data:", data);
-
-    // Backend API goes here
-    // await registerUser(data);
+    try {
+      const { name, email, password } = data;
+      const user = await registerApi({ name, email, password });
+      console.log(user);
+      dispatch(logIn(user.data.user));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

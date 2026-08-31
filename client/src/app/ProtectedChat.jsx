@@ -2,12 +2,14 @@ import { React, useEffect } from "react";
 import { useNavigate, Outlet } from "react-router";
 import { useSelector } from "react-redux";
 const ProtectedChat = () => {
-  const Login = useSelector((store) => store.auth.isAuthenticated);
+  const isAuthenticated = useSelector((store) => store.auth.isAuthenticated);
   const navigate = useNavigate();
-  console.log(Login);
+  console.log("ProtectedChat - isAuthenticated:", isAuthenticated); // Better debug
+
   useEffect(() => {
-    if (!Login) navigate("/");
-  }, [Login, navigate]);
+    if (!isAuthenticated) navigate("/");
+  }, [isAuthenticated, navigate]);
+
   return <Outlet />;
 };
 
