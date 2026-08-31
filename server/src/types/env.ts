@@ -13,6 +13,7 @@ export const envSchema = z.object({
   REFRESH_COOKIE_NAME: z.string(),
   MISTRAL_API_KEY: z.string(),
   TVLY_API_KEY: z.string(),
+  FRONTEND_URL: z.string(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
