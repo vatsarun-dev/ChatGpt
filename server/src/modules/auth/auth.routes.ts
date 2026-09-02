@@ -2,6 +2,7 @@ import { Router } from "express";
 import AuthController from "./auth.controller.ts";
 import asyncHandler from "../../utils/asyncHandler.ts";
 import * as validation from "../../validation/validationRule.ts";
+import authMiddleware from "../../middlewares/auth.middleware.ts";
 const routes = Router();
 const authController = new AuthController();
 routes.post(
@@ -15,4 +16,14 @@ routes.post(
   asyncHandler(authController.registerUserController.bind(authController)),
 );
 
+routes.post(
+  "/refresh",
+  asyncHandler(authController.refreshPageController.bind(authController)),
+);
+
+routes.get(
+  "/auth/me",
+  authMiddleware,
+  authController.getMeController.bind(authController),
+);
 export default routes;

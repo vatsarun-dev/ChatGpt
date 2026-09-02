@@ -26,9 +26,11 @@ export default class AuthService {
     if (!compare) throw new error.UNAUTHORIZED("the password  is incorrect");
 
     const access_token = token.generateAccessToken(user._id, email);
-    const refrest_token = token.generateRefreshToken(user._id, email);
+    const refresh_token = token.generateRefreshToken(user._id, email);
 
-    res.cookie("access_token", access_token, cookie.accessToken);
+    res.cookie("access_token", access_token, appConstant.cookie.accessToken);
+    res.cookie("refresh_token", refresh_token, appConstant.cookie.refreshToken);
+
     return user;
   }
 
@@ -42,9 +44,26 @@ export default class AuthService {
       throw new error.ALLREADYEXIST("the user is already register");
     const user = await this.authService.createUser({ name, email, password });
     const access_token = token.generateAccessToken(user._id, email);
-    const refrest_token = token.generateRefreshToken(user._id, email);
+    const refresh_token = token.generateRefreshToken(user._id, email);
 
-    res.cookie("refresh_token", refresh_token, cookie.refreshToken);
+    res.cookie("access_token", access_token, appConstant.cookie.accessToken);
+    res.cookie("refresh_token", refresh_token, appConstant.cookie.refreshToken);
+    return user;
+  }
+
+  async refreshPageService(req) {
+    const refresh_token = req.cookies.refresh_token;
+    if (!token) throw new error.NOTFOUNDERROR("token not found");
+    const user = jwt.verify(refresh_token, env.JWT_ACCESS_SECRET);
+    if (!user) throw new error.NOTFOUNDERROR("no user found");
+    const access_token = token.generateAccessToken(user.id, user.email);
+    return access_token;
+  }
+
+  async getMeService(req) {
+    const user = await this.authService.findById(req.user.id);
+    if (!user) throw new error.NOTFOUNDERROR("no user found");
+
     return user;
   }
 }
