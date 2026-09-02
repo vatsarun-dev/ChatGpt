@@ -7,6 +7,8 @@ import type {
 import * as token from "../../utils/generateToken.ts";
 import * as error from "../../shared/error/globalError.ts";
 import { appConstant } from "../../constant/appConstant.ts";
+import jwt from "jsonwebtoken";
+import env from "../../config/env.ts";
 export default class AuthService {
   constructor() {
     this.authService = new UserRepo();
@@ -25,8 +27,16 @@ export default class AuthService {
 
     if (!compare) throw new error.UNAUTHORIZED("the password  is incorrect");
 
-    const access_token = token.generateAccessToken(user._id, email);
-    const refresh_token = token.generateRefreshToken(user._id, email);
+    const access_token = token.generateAccessToken({
+      id: String(user._id),
+      email: user.email,
+      type: "access",
+    });
+    const refresh_token = token.generateRefreshToken({
+      id: String(user._id),
+      email: user.email,
+      type: "refresh_token",
+    });
 
     res.cookie("access_token", access_token, appConstant.cookie.accessToken);
     res.cookie("refresh_token", refresh_token, appConstant.cookie.refreshToken);
@@ -43,24 +53,41 @@ export default class AuthService {
     if (isExisted)
       throw new error.ALLREADYEXIST("the user is already register");
     const user = await this.authService.createUser({ name, email, password });
-    const access_token = token.generateAccessToken(user._id, email);
-    const refresh_token = token.generateRefreshToken(user._id, email);
+    const access_token = token.generateAccessToken({
+      id: String(user._id),
+      email: user.email,
+      type: "access",
+    });
+    const refresh_token = token.generateRefreshToken({
+      id: String(user._id),
+      email: user.email,
+      type: "refresh_token",
+    });
 
     res.cookie("access_token", access_token, appConstant.cookie.accessToken);
     res.cookie("refresh_token", refresh_token, appConstant.cookie.refreshToken);
     return user;
   }
 
-  async refreshPageService(req) {
+  async refreshPageService(req: Request, res: Response) {
     const refresh_token = req.cookies.refresh_token;
-    if (!token) throw new error.NOTFOUNDERROR("token not found");
-    const user = jwt.verify(refresh_token, env.JWT_ACCESS_SECRET);
+    if (!refresh_token) throw new error.NOTFOUNDERROR("token not found");
+    const user = jwt.verify(refresh_token, env.JWT_REFRESH_SECRET) as {
+      id: string;
+      email: string;
+    };
     if (!user) throw new error.NOTFOUNDERROR("no user found");
-    const access_token = token.generateAccessToken(user.id, user.email);
+    const access_token = token.generateAccessToken({
+      id: String(user.id),
+      email: user.email,
+      type: "access",
+    });
+    res.cookie("access_token", access_token, appConstant.cookie.accessToken);
+
     return access_token;
   }
 
-  async getMeService(req) {
+  async getMeService(req: Request) {
     const user = await this.authService.findById(req.user.id);
     if (!user) throw new error.NOTFOUNDERROR("no user found");
 

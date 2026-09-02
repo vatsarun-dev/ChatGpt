@@ -22,8 +22,8 @@ routes.post(
 );
 
 routes.get(
-  "/auth/me",
+  "/me",
   authMiddleware,
-  authController.getMeController.bind(authController),
+  asyncHandler(authController.getMeController.bind(authController)),
 );
 export default routes;

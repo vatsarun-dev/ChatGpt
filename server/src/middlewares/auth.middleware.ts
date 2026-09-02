@@ -1,5 +1,7 @@
 import { NOTFOUNDERROR, UNAUTHORIZED } from "../shared/error/globalError.ts";
 import type { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import env from "../config/env.ts";
 export default function authMiddleware(
   req: Request,
   res: Response,

@@ -23,7 +23,8 @@ export default class AuthController {
   }
 
   async refreshPageController(req: Request, res: Response) {
-    const { access_token } = await this.authController.getUserService(req);
+    const access_token = await this.authController.refreshPageService(req, res);
+
     return res.status(200).json({
       message: "access_token set",
       access_token: access_token,
@@ -31,7 +32,7 @@ export default class AuthController {
   }
 
   async getMeController(req: Request, res: Response) {
-    const { user } = await this.authController.getMeService(req);
+    const user = await this.authController.getMeService(req);
     return res.status(200).json({
       message: "user found",
       user: user,
