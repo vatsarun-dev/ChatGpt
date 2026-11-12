@@ -10,6 +10,7 @@ import { appConstant } from "../../constant/appConstant.ts";
 import jwt from "jsonwebtoken";
 import env from "../../config/env.ts";
 export default class AuthService {
+  private readonly authService: UserRepo;
   constructor() {
     this.authService = new UserRepo();
   }
