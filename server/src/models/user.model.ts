@@ -1,7 +1,7 @@
 import { model, Schema, type InferSchemaType } from "mongoose";
 import type { NextFunction } from "express";
 import bcrypt from "bcrypt";
-const userSchema = Schema(
+const userSchema = new Schema(
   {
     name: {
       type: String,
@@ -32,8 +32,8 @@ const userSchema = Schema(
   { timestamps: true },
 );
 
-userSchema.pre("save", function (next: NextFunction): void {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", function (): void {
+  if (!this.isModified("password")) return ;
   this.password = bcrypt.hashSync(this.password, 10);
 });
 

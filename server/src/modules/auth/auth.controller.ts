@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
-import AuthService from "./auth.service.ts";
+import AuthService from "./auth.service";
+
 export default class AuthController {
+  private readonly authController: AuthService;
+
   constructor() {
     this.authController = new AuthService();
   }
