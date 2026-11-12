@@ -84,10 +84,10 @@ const Home = () => {
 
           <div className="flex items-center gap-2 lg:px-1">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05]">
-              <span className="text-sm font-bold">N</span>
+               <img src={logo} alt="ChatGPT Logo" className="h-9 w-9" />
             </div>
 
-            <span className="text-sm font-semibold text-zinc-200">Neural</span>
+            <span className="text-sm font-semibold text-zinc-200">ChatGpt</span>
           </div>
 
           <button

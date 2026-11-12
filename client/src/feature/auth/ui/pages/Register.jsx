@@ -35,6 +35,7 @@ const Register = () => {
   const onSubmit = async (data) => {
     try {
       const { name, email, password } = data;
+      console.log(data)
       const user = await registerApi({ name, email, password });
       console.log(user);
       dispatch(logIn(user.data.user));

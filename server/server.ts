@@ -9,7 +9,8 @@ import logger from "./src/config/logger.ts";
         logger.info({ port: env.PORT }, "your app is running ");
       });
     })
-    .catch((error) =>
-      logger.error({ error: error }, "there is something error "),
-    );
+    .catch((error) => {
+      logger.error({ error: error }, "there is something error ");
+      process.exitCode = 1;
+    });
 })();
