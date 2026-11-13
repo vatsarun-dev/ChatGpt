@@ -103,7 +103,7 @@ export default class AuthService {
   }
 
   async getMeService(req: Request) {
-    const user = await this.authService.findById(req.id);
+    const user = await this.authService.findById(req.user.id);
     if (!user) throw new error.NOTFOUNDERROR("no user found");
 
     return this.toResponseUser(user);

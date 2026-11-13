@@ -1,8 +1,12 @@
-import {Router} from "express"
+import { Router } from "express";
 import asyncHandler from "../../utils/asyncHandler";
 import ChatController from "./chat.controller";
-const chatRoutes= Router()
-const chatController= new ChatController()
-chatRoutes.post("chat",
-    asyncHandler(chatController.ChatController.bind(chatController)))
-export default chatRoutes
+import { chatValidation } from "../../validation/chat.validation";
+const chatRoutes = Router();
+const chatController = new ChatController();
+chatRoutes.post(
+  "chat",
+  chatValidation,
+  asyncHandler(chatController.chatController.bind(chatController)),
+);
+export default chatRoutes;
