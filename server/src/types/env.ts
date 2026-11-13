@@ -11,6 +11,7 @@ export const envSchema = z.object({
   MISTRAL_API_KEY: z.string(),
   TVLY_API_KEY: z.string(),
   FRONTEND_URL: z.string(),
+  OPENROUTER_API_KEY: z.string(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
