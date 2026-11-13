@@ -3,22 +3,47 @@ import UserRepo from "../../repository/user.repo.ts";
 import type {
   LoginUserRequest,
   RegisterUserRequest,
-} from "../../types/user.ts";
+  AuthResponseUser,
+} from "../../types/response.ts";
 import * as token from "../../utils/generateToken.ts";
 import * as error from "../../shared/error/globalError.ts";
 import { appConstant } from "../../constant/appConstant.ts";
 import jwt from "jsonwebtoken";
 import env from "../../config/env.ts";
 export default class AuthService {
-  private readonly authService: UserRepo;
-  constructor() {
-    this.authService = new UserRepo();
+  private readonly authService = new UserRepo()
+
+  private toResponseUser(
+    user: AuthResponseUser,
+  ): Pick<AuthResponseUser, "id" | "name" | "email"> {
+    return{
+      id:user.id,
+      name:user.name,
+      email:user.email
+    }
   }
 
-  async loginUserService(req: Request, res: Response) {
-    const { email, password } = req.body as LoginUserRequest;
+  private async issueAuthCookies(user: AuthResponseUser, res: Response): Promise<void> {
+    const accessToken = token.generateAccessToken({
+      id: String(user.id),
+      email: user.email,
+      type: "access",
+    });
+    const refreshToken = token.generateRefreshToken({
+      id: String(user.id),
+      email: user.email,
+      type: "refresh",
+    });
 
-    if (!email) throw new Error("please fill all the details");
+    res.cookie("access_token", accessToken, appConstant.cookie.accessToken);
+    res.cookie("refresh_token", refreshToken, appConstant.cookie.refreshToken);
+  }
+
+
+  async loginUserService(req:LoginUserRequest , res: Response):Promise<AuthResponseUser> {
+    const { email, password } = req;
+
+    if (!email || !password) throw new Error("please fill all the details");
 
     const user = await this.authService.findByEmail(String(email));
 
@@ -45,8 +70,8 @@ export default class AuthService {
     return user;
   }
 
-  async registerUserService(req: Request, res: Response) {
-    const { name, email, password } = req.body as RegisterUserRequest;
+  async registerUserService(req: RegisterUserRequest, res: Response) {
+    const { name, email, password } = req;
     if (!name || !email || !password)
       throw new Error("all fields are required");
 
