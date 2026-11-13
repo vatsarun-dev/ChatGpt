@@ -11,19 +11,24 @@ import { appConstant } from "../../constant/appConstant.ts";
 import jwt from "jsonwebtoken";
 import env from "../../config/env.ts";
 export default class AuthService {
-  private readonly authService = new UserRepo()
+  private readonly authService = new UserRepo();
 
-  private toResponseUser(
-    user: AuthResponseUser,
-  ): Pick<AuthResponseUser, "id" | "name" | "email"> {
-    return{
-      id:user.id,
-      name:user.name,
-      email:user.email
-    }
+  private toResponseUser(user: {
+    _id: unknown;
+    name: string;
+    email: string;
+  }): AuthResponseUser {
+    return {
+      id: String(user._id),
+      name: user.name,
+      email: user.email,
+    };
   }
 
-  private async issueAuthCookies(user: AuthResponseUser, res: Response): Promise<void> {
+  private async issueAuthCookies(
+    user: AuthResponseUser,
+    res: Response,
+  ): Promise<void> {
     const accessToken = token.generateAccessToken({
       id: String(user.id),
       email: user.email,
@@ -39,37 +44,6 @@ export default class AuthService {
     res.cookie("refresh_token", refreshToken, appConstant.cookie.refreshToken);
   }
 
-
-  async loginUserService(req:LoginUserRequest , res: Response):Promise<AuthResponseUser> {
-    const { email, password } = req;
-
-    if (!email || !password) throw new Error("please fill all the details");
-
-    const user = await this.authService.findByEmail(String(email));
-
-    if (!user) throw new error.NOTFOUNDERROR("the user is not register");
-
-    const compare = await user.comparePassword(password);
-
-    if (!compare) throw new error.UNAUTHORIZED("the password  is incorrect");
-
-    const access_token = token.generateAccessToken({
-      id: String(user._id),
-      email: user.email,
-      type: "access",
-    });
-    const refresh_token = token.generateRefreshToken({
-      id: String(user._id),
-      email: user.email,
-      type: "refresh_token",
-    });
-
-    res.cookie("access_token", access_token, appConstant.cookie.accessToken);
-    res.cookie("refresh_token", refresh_token, appConstant.cookie.refreshToken);
-
-    return user;
-  }
-
   async registerUserService(req: RegisterUserRequest, res: Response) {
     const { name, email, password } = req;
     if (!name || !email || !password)
@@ -79,20 +53,35 @@ export default class AuthService {
     if (isExisted)
       throw new error.ALLREADYEXIST("the user is already register");
     const user = await this.authService.createUser({ name, email, password });
-    const access_token = token.generateAccessToken({
-      id: String(user._id),
-      email: user.email,
-      type: "access",
-    });
-    const refresh_token = token.generateRefreshToken({
-      id: String(user._id),
-      email: user.email,
-      type: "refresh_token",
-    });
+    const responseUser = this.toResponseUser(user);
+    await this.issueAuthCookies(responseUser, res);
+    return responseUser;
+  }
 
-    res.cookie("access_token", access_token, appConstant.cookie.accessToken);
-    res.cookie("refresh_token", refresh_token, appConstant.cookie.refreshToken);
-    return user;
+  async loginUserService(
+    req: LoginUserRequest,
+    res: Response,
+  ): Promise<AuthResponseUser> {
+    const { email, password } = req;
+
+    if (!email || !password) throw new Error("please fill all the details");
+
+    const user = await this.authService.findByEmail(String(email));
+
+    if (!user) throw new error.NOTFOUNDERROR("the user is not register");
+
+    const compare = await (
+      user as typeof user & {
+        comparePassword(password: string): Promise<boolean>;
+      }
+    ).comparePassword(password);
+
+    if (!compare) throw new error.UNAUTHORIZED("the password  is incorrect");
+
+    const responseUser = this.toResponseUser(user);
+    await this.issueAuthCookies(responseUser, res);
+
+    return responseUser;
   }
 
   async refreshPageService(req: Request, res: Response) {
@@ -114,9 +103,9 @@ export default class AuthService {
   }
 
   async getMeService(req: Request) {
-    const user = await this.authService.findById(req.user.id);
+    const user = await this.authService.findById(req.id);
     if (!user) throw new error.NOTFOUNDERROR("no user found");
 
-    return user;
+    return this.toResponseUser(user);
   }
 }
