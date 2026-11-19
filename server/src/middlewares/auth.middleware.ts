@@ -2,6 +2,7 @@ import { NOTFOUNDERROR, UNAUTHORIZED } from "../shared/error/globalError.ts";
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import env from "../config/env.ts";
+import type { AccessTokenPayload } from "../types/auth.ts";
 export default function authMiddleware(
   req: Request,
   res: Response,
@@ -11,7 +12,7 @@ export default function authMiddleware(
     const token = req.cookies.access_token;
     if (!token) throw new NOTFOUNDERROR("no token found");
 
-    const decode = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    const decode = jwt.verify(token, env.JWT_ACCESS_SECRET) as AccessTokenPayload;
     if (!decode) throw new UNAUTHORIZED("UNAUTHORIZED USER");
     req.user = decode;
     next();

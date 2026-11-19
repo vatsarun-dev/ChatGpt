@@ -1,7 +1,11 @@
-import { userModel } from "../models/user.model.ts";
+import { userModel, type UserDocument } from "../models/user.model.ts";
 
 export default class UserRepo {
-  async createUser(input: { name: string; email: string; password: string }) {
+  async createUser(input: {
+    name: string;
+    email: string;
+    password: string;
+  }): Promise<UserDocument> {
     const user = await userModel.create(input);
     return user;
   }
