@@ -14,7 +14,7 @@ export default function authMiddleware(
 
     const decode = jwt.verify(token, env.JWT_ACCESS_SECRET) as AccessTokenPayload;
     if (!decode) throw new UNAUTHORIZED("UNAUTHORIZED USER");
-    req.user = decode;
+    (req as Request & { user: AccessTokenPayload }).user = decode;
     next();
   } catch (error) {
     return res.status(500).json({

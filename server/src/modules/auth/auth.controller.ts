@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import AuthService from "./auth.service";
 import { LoginUserRequest, RegisterUserRequest } from "../../types/response";
+import type { AuthenticatedRequest } from "../../types/auth.ts";
 
 export default class AuthController {
   private readonly authController = new AuthService();
@@ -39,7 +40,7 @@ export default class AuthController {
   }
 
   async getMeController(req: Request, res: Response): Promise<void> {
-    const user = await this.authController.getMeService(req);
+    const user = await this.authController.getMeService(req as AuthenticatedRequest);
     res.status(StatusCodes.OK).json({
       message: "user found",
       user: user,

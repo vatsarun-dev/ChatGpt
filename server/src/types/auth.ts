@@ -8,3 +8,8 @@ export type RefreshTokenPayload = {
   email: string;
   type: "refresh";
 };
+
+/** Request shape available after authMiddleware has verified the access token. */
+export type AuthenticatedRequest = import("express").Request & {
+  user: AccessTokenPayload;
+};

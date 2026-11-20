@@ -28,3 +28,16 @@ export async function getConversationTitle({
   });
   return response.structuredResponse.title;
 }
+/**
+ *
+ * @param param0 to generate stream this function is used
+ * @returns
+ */
+export async function getStream({
+  message,
+}: {
+  message: string;
+}): Promise<ReadableStream> {
+  const stream = await smallModel.stream(message);
+  return stream;
+}

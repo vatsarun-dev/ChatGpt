@@ -1,4 +1,4 @@
-import { model, Schema, type InferSchemaType } from "mongoose";
+import { model, Schema, type HydratedDocument, type InferSchemaType } from "mongoose";
 import type { NextFunction } from "express";
 import bcrypt from "bcrypt";
 const userSchema = new Schema(
@@ -41,5 +41,5 @@ userSchema.methods.comparePassword = function (password: string): boolean {
   return bcrypt.compareSync(password, this.password);
 };
 
-export type UserDocument = InferSchemaType<typeof userSchema>;
+export type UserDocument = HydratedDocument<InferSchemaType<typeof userSchema>>;
 export const userModel = model("userModel", userSchema);

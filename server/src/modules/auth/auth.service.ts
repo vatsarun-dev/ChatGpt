@@ -10,14 +10,12 @@ import * as error from "../../shared/error/globalError.ts";
 import { appConstant } from "../../constant/appConstant.ts";
 import jwt from "jsonwebtoken";
 import env from "../../config/env.ts";
+import type { AuthenticatedRequest } from "../../types/auth.ts";
+import type { UserDocument } from "../../models/user.model.ts";
 export default class AuthService {
   private readonly authService = new UserRepo();
 
-  private toResponseUser(user: {
-    _id: unknown;
-    name: string;
-    email: string;
-  }): AuthResponseUser {
+  private toResponseUser(user: Pick<UserDocument, "_id" | "name" | "email">): AuthResponseUser {
     return {
       id: String(user._id),
       name: user.name,
@@ -102,7 +100,7 @@ export default class AuthService {
     return access_token;
   }
 
-  async getMeService(req: Request) {
+  async getMeService(req: AuthenticatedRequest) {
     const user = await this.authService.findById(req.user.id);
     if (!user) throw new error.NOTFOUNDERROR("no user found");
 
