@@ -2,7 +2,7 @@ import { ChatOpenRouter } from "@langchain/openrouter";
 import { createAgent, HumanMessage } from "langchain";
 import { z } from "zod";
 const smallModel = new ChatOpenRouter({
-  model: "anthropic/claude-sonnet-4.5",
+  model: "nvidia/nemotron-3-ultra-550b-a55b:free",
   temperature: 0.7,
   apiKey: process.env.OPENROUTER_API_KEY,
 });

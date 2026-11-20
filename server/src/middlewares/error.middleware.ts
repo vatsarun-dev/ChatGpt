@@ -7,6 +7,10 @@ export default async function errorHandler(
   res: Response,
   next: NextFunction,
 ) {
+  if (res.headersSent) {
+    return next(err);
+  }
+
   const message: string = err.message || "Internal Server Error";
   const statusCode: number =
     err.statusCode ?? StatusCodes.INTERNAL_SERVER_ERROR;
