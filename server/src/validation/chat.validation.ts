@@ -2,7 +2,7 @@ import { body } from "express-validator";
 import validRequest from "../utils/validationRequest.ts";
 export const chatValidation = [
   body("message").notEmpty().withMessage("Message is required"),
-  body("conversation")
+  body("conversationId")
     .optional()
     .isString()
     .withMessage("Conversation must be a string")

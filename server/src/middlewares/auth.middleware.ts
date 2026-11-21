@@ -1,4 +1,3 @@
-import { NOTFOUNDERROR, UNAUTHORIZED } from "../shared/error/globalError.ts";
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import env from "../config/env.ts";
@@ -10,15 +9,16 @@ export default function authMiddleware(
 ) {
   try {
     const token = req.cookies.access_token;
-    if (!token) throw new NOTFOUNDERROR("no token found");
+    if (!token) {
+      return res.status(401).json({ message: "Authentication required. Please sign in again." });
+    }
 
     const decode = jwt.verify(token, env.JWT_ACCESS_SECRET) as AccessTokenPayload;
-    if (!decode) throw new UNAUTHORIZED("UNAUTHORIZED USER");
     (req as Request & { user: AccessTokenPayload }).user = decode;
     next();
   } catch (error) {
-    return res.status(500).json({
-      message: error,
+    return res.status(401).json({
+      message: error instanceof Error ? error.message : "Invalid authentication token",
     });
   }
 }

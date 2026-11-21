@@ -10,4 +10,8 @@ export default class MessageRepo {
     });
     return createdMessage;
   }
+
+  async findByConversationId(conversationId: string) {
+    return await messageModel.find({ conversationId }).sort({ createdAt: 1 }).lean();
+  }
 }

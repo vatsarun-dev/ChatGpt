@@ -106,4 +106,9 @@ export default class AuthService {
 
     return this.toResponseUser(user);
   }
+
+  logoutUserService(res: Response): void {
+    res.clearCookie("access_token", appConstant.cookie.accessToken);
+    res.clearCookie("refresh_token", appConstant.cookie.refreshToken);
+  }
 }

@@ -18,6 +18,7 @@ export default function securityMiddleware(app: Express) {
     cors({
       origin: env.FRONTEND_URL ?? "http://localhost:5173",
       credentials: true,
+      exposedHeaders: ["X-Conversation-Id"],
     }),
   );
   app.use(hpp());

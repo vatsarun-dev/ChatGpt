@@ -13,10 +13,10 @@ const authReducers = createSlice({
       state.isAuthenticated = true;
       state.isLoading = false;
     },
-    logOut: (state, action) => {
+    logOut: (state) => {
       state.user = null;
       state.isAuthenticated = false;
-      state.isLoading = true;
+      state.isLoading = false;
     },
 
     stopAuthLoading: (state) => {

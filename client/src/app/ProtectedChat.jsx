@@ -7,7 +7,7 @@ const ProtectedChat = () => {
   console.log("ProtectedChat - isAuthenticated:", isAuthenticated); // Better debug
 
   useEffect(() => {
-    if (!isAuthenticated && !isAuthenticated) navigate("/");
+    if (!isLoading && !isAuthenticated) navigate("/");
   }, [isAuthenticated, isLoading, navigate]);
 
   if (isLoading) return <div>Loading...</div>;

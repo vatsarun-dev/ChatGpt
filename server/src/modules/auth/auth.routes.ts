@@ -20,6 +20,10 @@ routes.post(
   "/refresh",
   asyncHandler(authController.refreshPageController.bind(authController)),
 );
+routes.post(
+  "/logout",
+  asyncHandler(authController.logoutUserController.bind(authController)),
+);
 
 routes.get(
   "/me",

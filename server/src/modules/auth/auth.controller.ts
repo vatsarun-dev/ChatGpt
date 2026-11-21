@@ -46,4 +46,9 @@ export default class AuthController {
       user: user,
     });
   }
+
+  async logoutUserController(_req: Request, res: Response): Promise<void> {
+    this.authController.logoutUserService(res);
+    res.status(StatusCodes.OK).json({ message: "Logged out successfully" });
+  }
 }
