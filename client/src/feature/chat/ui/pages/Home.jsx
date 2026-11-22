@@ -29,8 +29,10 @@ const Home = () => {
   const [conversationId, setConversationId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [sending, setSending] = useState(false);
+  const [loadingConversation, setLoadingConversation] = useState(false);
   const [error, setError] = useState("");
   const bottomRef = useRef(null);
+  const historyRequestRef = useRef(0);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
@@ -55,6 +57,8 @@ const Home = () => {
   }, [loadConversations]);
 
   const startNewChat = () => {
+    historyRequestRef.current += 1;
+    setLoadingConversation(false);
     setConversationId(null);
     setMessages([]);
     setError("");
@@ -72,21 +76,30 @@ const Home = () => {
   };
 
   const openConversation = async (id) => {
-    setConversationId(id);
-    setMessages([]);
+    const requestId = ++historyRequestRef.current;
+    setLoadingConversation(true);
     setError("");
     try {
       const { data } = await getMessagesApi(id);
-      setMessages(
-        data.messages.map((item) => ({
-          id: item._id,
-          author: item.author,
-          content: item.content,
-        })),
-      );
-      setSidebarOpen(false);
+      if (requestId === historyRequestRef.current) {
+        setConversationId(id);
+        setMessages(
+          data.messages.map((item) => ({
+            id: item._id,
+            author: item.author,
+            content: item.content,
+          })),
+        );
+        setSidebarOpen(false);
+      }
     } catch {
-      setError("Could not load this conversation.");
+      if (requestId === historyRequestRef.current) {
+        setError("Could not load this conversation.");
+      }
+    } finally {
+      if (requestId === historyRequestRef.current) {
+        setLoadingConversation(false);
+      }
     }
   };
 
@@ -126,6 +139,12 @@ const Home = () => {
       await loadConversations();
     } catch (err) {
       setError(err.message || "The response stream was interrupted.");
+      setMessages((current) => {
+        const last = current[current.length - 1];
+        return last?.author === "ai" && !last.content
+          ? current.slice(0, -1)
+          : current;
+      });
     } finally {
       setSending(false);
     }
@@ -243,7 +262,11 @@ const Home = () => {
         </header>
 
         <section className="scrollbar-hidden flex-1 overflow-y-auto px-4 py-8 pb-2 sm:px-6">
-          {messages.length === 0 ? (
+          {loadingConversation && messages.length === 0 ? (
+            <p className="mx-auto max-w-2xl pt-8 text-center text-sm text-zinc-500">
+              Loading conversation…
+            </p>
+          ) : messages.length === 0 ? (
             <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center pb-12 ">
               <img src={logo} alt="" className="mb-2 h-14 w-14" />
               <h1 className="text-center text-2xl font-semibold sm:text-3xl">
