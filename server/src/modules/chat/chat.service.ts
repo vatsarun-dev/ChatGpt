@@ -22,7 +22,8 @@ export default class ChatService {
       });
       activeConversationId = String(conversation._id);
     } else {
-      const conversation = await this.conversationRepo.findById(activeConversationId);
+      const conversation =
+        await this.conversationRepo.findById(activeConversationId);
       if (!conversation || String(conversation.userId) !== user.id) {
         res.status(404).json({ message: "Conversation not found" });
         return;
@@ -34,7 +35,10 @@ export default class ChatService {
       author: "user",
       conversationId: activeConversationId,
     });
-    const stream = await getStream({ message });
+
+    const messages =
+      await this.messageRepo.findByConversationId(activeConversationId);
+    const stream = await getStream({ messages });
 
     res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
     res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -75,7 +79,10 @@ export default class ChatService {
     return this.conversationRepo.findByUserId(req.user.id);
   }
 
-  async getConversationMessages(req: AuthenticatedRequest, conversationId: string) {
+  async getConversationMessages(
+    req: AuthenticatedRequest,
+    conversationId: string,
+  ) {
     const conversation = await this.conversationRepo.findById(conversationId);
     if (!conversation || String(conversation.userId) !== req.user.id) {
       return null;

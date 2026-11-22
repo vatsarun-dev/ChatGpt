@@ -6,6 +6,7 @@ const messageSchema= new Schema({
     },
     author:{
         type:String,
+        enum:["ai", "user"],
         required:true,
         trim:true,
     },

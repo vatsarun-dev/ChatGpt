@@ -1,6 +1,5 @@
 import axios from "axios";
-const apiURL =
-  import.meta.env.VITE_API_URL ?? "https://chatgpt-2icw.onrender.com";
+const apiURL = "http://localhost:5000/" ?? "https://chatgpt-2icw.onrender.com";
 const normalizedApiURL = apiURL.replace(/\/+$/, "");
 export const api = axios.create({
   baseURL: normalizedApiURL.endsWith("/api")

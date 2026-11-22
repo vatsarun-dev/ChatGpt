@@ -1,10 +1,20 @@
 import { envSchema } from "../types/env.ts";
 import dotenv from "dotenv";
+import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const envFile = resolve(dirname(fileURLToPath(import.meta.url)), "../../.env");
-dotenv.config({ path: envFile });
+const configDirectory = dirname(fileURLToPath(import.meta.url));
+const envFile = [
+  resolve(configDirectory, "../../.env"),
+  resolve(configDirectory, "../../../.env"),
+].find(existsSync);
+
+if (envFile) {
+  dotenv.config({ path: envFile });
+} else {
+  dotenv.config();
+}
 
 const parsed = envSchema.safeParse(process.env);
 

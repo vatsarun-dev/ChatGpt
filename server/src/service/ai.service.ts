@@ -1,6 +1,7 @@
 import { ChatOpenRouter } from "@langchain/openrouter";
-import { createAgent, HumanMessage } from "langchain";
+import { createAgent, HumanMessage, AIMessage } from "langchain";
 import { z } from "zod";
+import type { Message } from "../types/chat.ts";
 const smallModel = new ChatOpenRouter({
   model: "nvidia/nemotron-3-ultra-550b-a55b:free",
   temperature: 0.7,
@@ -34,10 +35,15 @@ export async function getConversationTitle({
  * @returns
  */
 export async function getStream({
-  message,
+  messages,
 }: {
-  message: string;
+  messages: Message[];
 }): Promise<ReadableStream> {
-  const stream = await smallModel.stream(message);
+  const stream = await smallModel.stream(
+    messages.map((message) => {
+      if (message.author == "ai") return new AIMessage(message.content);
+      else return new HumanMessage(message.content);
+    }),
+  );
   return stream;
 }
