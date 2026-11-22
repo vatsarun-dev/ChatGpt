@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import type { AuthenticatedRequest } from "../../types/auth.ts";
-import ChatService from "./chat.service";
+import ChatService from "./chat.service.ts";
 
 export default class ChatController {
   private readonly chatControllers = new ChatService();

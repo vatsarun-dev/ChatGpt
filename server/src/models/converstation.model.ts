@@ -1,4 +1,4 @@
-import {Schema, model, type InferSchemaType} from "mongoose"
+import { Schema, model, type HydratedDocument, type InferSchemaType } from "mongoose";
 const conversationSchema= new Schema({
     title:{
         type:String,
@@ -14,5 +14,7 @@ const conversationSchema= new Schema({
 },{
     timestamps:true
 })
-export type ConversationDocument=InferSchemaType<typeof conversationSchema>
-export const conversationModel=model("conversationModel",conversationSchema)
+export type ConversationDocument = HydratedDocument<
+  InferSchemaType<typeof conversationSchema>
+>;
+export const conversationModel = model("conversationModel", conversationSchema);

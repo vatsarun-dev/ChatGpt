@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import AuthService from "./auth.service";
-import { LoginUserRequest, RegisterUserRequest } from "../../types/response";
+import AuthService from "./auth.service.ts";
+import type { LoginUserRequest, RegisterUserRequest } from "../../types/response.ts";
 import type { AuthenticatedRequest } from "../../types/auth.ts";
 
 export default class AuthController {

@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../../types/auth.ts";
-import { getConversationTitle, getStream } from "../../service/ai.service";
-import ConversationRepo from "../../repository/conversation.repo";
+import { getConversationTitle, getStream } from "../../service/ai.service.ts";
+import ConversationRepo from "../../repository/conversation.repo.ts";
 import MessageRepo from "../../repository/message.repo.ts";
 export default class ChatService {
   private conversationRepo = new ConversationRepo();

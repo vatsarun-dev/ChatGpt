@@ -1,7 +1,7 @@
 import {
   conversationModel,
   type ConversationDocument,
-} from "../models/converstation.model";
+} from "../models/converstation.model.ts";
 export default class ConversationRepo {
   async createConversation(input: {
     title: string;
