@@ -84,12 +84,12 @@ export default class AuthService {
 
   async refreshPageService(req: Request, res: Response) {
     const refresh_token = req.cookies.refresh_token;
-    if (!refresh_token) throw new error.NOTFOUNDERROR("token not found");
+    if (!refresh_token) throw new error.UNAUTHORIZED("refresh token not found");
     const user = jwt.verify(refresh_token, env.JWT_REFRESH_SECRET) as {
       id: string;
       email: string;
     };
-    if (!user) throw new error.NOTFOUNDERROR("no user found");
+    if (!user) throw new error.UNAUTHORIZED("invalid refresh token");
     const access_token = token.generateAccessToken({
       id: String(user.id),
       email: user.email,
