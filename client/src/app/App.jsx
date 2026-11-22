@@ -1,5 +1,5 @@
 import React from "react";
-import Router from "./Router.jsx";
+import Router from "./router.jsx";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { refreshApi, getMeApi } from "../feature/auth/service/authService.js";
