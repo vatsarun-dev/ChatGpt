@@ -20,7 +20,9 @@ const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   const details = parsed.error.issues
-    .map((issue) => `${issue.path.join(".") || "environment"}: ${issue.message}`)
+    .map(
+      (issue) => `${issue.path.join(".") || "environment"}: ${issue.message}`,
+    )
     .join("; ");
   throw new Error(`Environment validation failed: ${details}`);
 }

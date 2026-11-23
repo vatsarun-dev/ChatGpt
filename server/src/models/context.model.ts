@@ -9,12 +9,12 @@ const contextSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "userModel",
       required: true,
-      index: true,
+      unique: true,
     },
     description: {
-      type: Schema.Types.ObjectId,
+      type: String,
       required: true,
       trim: true,
     },

@@ -38,7 +38,7 @@ export default class ChatService {
 
     const messages =
       await this.messageRepo.findByConversationId(activeConversationId);
-    const stream = await getStream({ messages });
+    const stream = await getStream({ messages, userId: user.id });
 
     res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
     res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -49,8 +49,8 @@ export default class ChatService {
     let aiMessage: string = "";
 
     try {
-      for await (const chunk of stream) {
-        const content = chunk.content;
+      for await (const [token, metadata] of stream) {
+        const content = token.content;
         if (typeof content !== "string" || !content) continue;
 
         aiMessage += content;
