@@ -3,15 +3,26 @@ import type { AuthenticatedRequest } from "../../types/auth.ts";
 import { getConversationTitle, getStream } from "../../service/ai.service.ts";
 import ConversationRepo from "../../repository/conversation.repo.ts";
 import MessageRepo from "../../repository/message.repo.ts";
+import UserRepo from "../../repository/user.repo.ts";
+import * as error from "../../shared/error/globalError.ts";
 export default class ChatService {
   private conversationRepo = new ConversationRepo();
   private messageRepo = new MessageRepo();
+  private userRepo = new UserRepo();
   async chatService(req: AuthenticatedRequest, res: Response) {
     const { message, conversationId } = req.body as {
       message: string;
       conversationId?: string;
     };
     const user = req.user;
+
+    // A valid JWT can outlive the account in the database it was issued from
+    // (for example, after switching the deployed database). Do not start an
+    // AI request or write conversation data for a missing account.
+    const existingUser = await this.userRepo.findById(user.id);
+    if (!existingUser) {
+      throw new error.UNAUTHORIZED("User not found. Please sign in again.");
+    }
 
     let activeConversationId = conversationId;
     if (!activeConversationId) {
