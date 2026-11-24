@@ -8,10 +8,8 @@ export const envSchema = z.object({
     .default("development"),
   JWT_ACCESS_SECRET: z.string(),
   JWT_REFRESH_SECRET: z.string(),
-  MISTRAL_API_KEY: z.string(),
-  TVLY_API_KEY: z.string(),
   FRONTEND_URL: z.string(),
-  OPENROUTER_API_KEY: z.string(),
+  OPENROUTER_API_KEY: z.string().trim().min(1),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

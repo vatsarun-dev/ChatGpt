@@ -1,11 +1,10 @@
 import { ChatOpenRouter } from "@langchain/openrouter";
 import { createAgent, HumanMessage, AIMessage } from "langchain";
-import { z } from "zod";
 import type { Message } from "../types/chat.ts";
 import { createMemoryTools } from "../service/ai/tool.ts";
 import env from "../config/env.ts";
 const smallModel = new ChatOpenRouter({
-  model: "nvidia/nemotron-3-ultra-550b-a55b:free ",
+  model: "nvidia/nemotron-3-ultra-550b-a55b:free",
   temperature: 1,
   apiKey: env.OPENROUTER_API_KEY,
   maxTokens: 4096,
@@ -16,21 +15,20 @@ export async function getConversationTitle({
 }: {
   message: string;
 }): Promise<string> {
-  const agent = createAgent({
-    model: smallModel,
-    responseFormat: z.object({
-      title: z
-        .string()
-        .max(30)
-        .describe("The title of the converstation, max 30 character"),
-    }),
-    systemPrompt: `You are a helpful assistant that provides concise and informative responses. Please provide a title for the conversation based on the user's prompt.`,
-  });
-
-  const response = await agent.invoke({
-    messages: [new HumanMessage(message)],
-  });
-  return response.structuredResponse.title;
+  // Ask for plain text: OpenRouter free models do not all support the
+  // structured response format LangChain otherwise requests here.
+  const response = await smallModel.invoke([
+    new HumanMessage(
+      `Give this conversation a concise title of at most 30 characters. Return only the title:\n${message}`,
+    ),
+  ]);
+  const content = Array.isArray(response.content)
+    ? response.content
+        .map((part) => (typeof part === "string" ? part : "text" in part ? part.text : ""))
+        .join("")
+    : String(response.content);
+  const title = content.trim().replace(/^['"`]+|['"`]+$/g, "").slice(0, 30);
+  return title || message.trim().slice(0, 30) || "New conversation";
 }
 /**
  *
