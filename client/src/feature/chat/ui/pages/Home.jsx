@@ -172,7 +172,7 @@ const Home = () => {
           </button>
           <div className="flex items-center gap-2 lg:px-1">
             <img src={logo} alt="ChatGPT" className="h-9 w-9" />
-            <span className="text-sm font-semibold text-zinc-200">ChatGpt</span>
+            <span className="text-sm font-semibold text-zinc-200">ChatGPT</span>
           </div>
           <button
             onClick={startNewChat}
@@ -258,7 +258,7 @@ const Home = () => {
             <Menu className="h-5 w-5" />
           </button>
           <img src={logo} alt="" className="h-8 w-8" />
-          <span className="text-sm font-medium text-zinc-300">ChatGpt</span>
+          <span className="text-sm font-medium text-zinc-300">ChatGPT</span>
         </header>
 
         <section className="scrollbar-hidden flex-1 overflow-y-auto px-4 py-8 pb-2 sm:px-6">
@@ -268,7 +268,7 @@ const Home = () => {
             </p>
           ) : messages.length === 0 ? (
             <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center pb-12 ">
-              <img src={logo} alt="" className="mb-2 h-14 w-14" />
+              <img src={logo} alt="ChatGPT" className="mb-2 h-14 w-14" />
               <h1 className="text-center text-2xl font-semibold sm:text-3xl">
                 How can I help you?
               </h1>
@@ -353,7 +353,7 @@ const Home = () => {
                     }
                   }}
                   rows={1}
-                  placeholder="Message ChatGpt..."
+                  placeholder="Message ChatGPT..."
                   className="max-h-32 min-h-[44px] w-full resize-none bg-transparent px-3 py-2.5 text-sm leading-6 text-white outline-none placeholder:text-zinc-600"
                 />
                 <div className="flex justify-end px-1 pb-0.5">
