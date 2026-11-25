@@ -1,13 +1,18 @@
 import { ChatOpenRouter } from "@langchain/openrouter";
 import { createAgent, HumanMessage, AIMessage } from "langchain";
 import type { Message } from "../types/chat.ts";
-import { createMemoryTools } from "../service/ai/tool.ts";
+import { createUpdateMemoryTool } from "../service/ai/tool.ts";
+import ContextRepo from "../repository/context.repo.ts";
 import env from "../config/env.ts";
+
+const contextRepo = new ContextRepo();
+const MAX_HISTORY_MESSAGES = 20;
+
 const smallModel = new ChatOpenRouter({
-  model: "nvidia/nemotron-3-ultra-550b-a55b:free",
-  temperature: 1,
+  model: env.OPENROUTER_MODEL || "nvidia/nemotron-3-ultra-550b-a55b:free",
+  temperature: 0.7,
   apiKey: env.OPENROUTER_API_KEY,
-  maxTokens: 4096,
+  maxTokens: 2048,
 });
 
 export async function getConversationTitle({
@@ -30,39 +35,44 @@ export async function getConversationTitle({
   const title = content.trim().replace(/^['"`]+|['"`]+$/g, "").slice(0, 30);
   return title || message.trim().slice(0, 30) || "New conversation";
 }
+
 /**
- *
- * @param param0 to generate stream this function is used
- * @returns
+ * Stream an assistant reply with preloaded user memory from MongoDB so no
+ * extra getMemory LLM round-trip is needed before tokens start streaming.
  */
 export async function getStream({
   messages,
   userId,
 }: {
-  messages: Message[];
+  messages: Array<Pick<Message, "author" | "content">>;
   userId: string;
-}): Promise<ReadableStream> {
+}) {
+  const savedContext = await contextRepo.readonlyContext(userId);
+  const recentMessages = messages.slice(-MAX_HISTORY_MESSAGES);
+
   const agent = createAgent({
     model: smallModel,
-    tools: createMemoryTools(userId),
+    tools: createUpdateMemoryTool(userId),
     systemPrompt: `You are a helpful assistant with persistent memory for the authenticated user.
 
+Saved user memory:
+${savedContext}
+
 Memory rules:
-1. Before answering each user message, call getMemory. Use the returned facts and preferences when relevant. If no context is found, continue normally.
-2. When the user tells you a stable personal fact, preference, goal, or ongoing project that may help in future conversations, call updateMemory before answering. Do not wait for the user to say "remember this" when the information is clearly useful long term.
-3. updateMemory replaces the saved context. First combine the new fact with all still-useful facts from getMemory, then send the complete concise context. Do not discard existing useful facts.
-4. Do not save passwords, authentication secrets, payment credentials, or similarly sensitive information. Do not claim that information was saved unless the updateMemory tool succeeds.
-5. Treat the saved context as personal information belonging only to this authenticated user.`,
+1. Use the saved user memory above whenever relevant without calling any tool to fetch it.
+2. When the user tells you a stable personal fact, preference, goal, or ongoing project that may help in future conversations, call updateMemory before answering. Combine the new fact with all still-useful facts from the saved user memory above so existing facts are preserved.
+3. Do not save passwords, authentication secrets, payment credentials, or similarly sensitive information. Do not claim that information was saved unless the updateMemory tool succeeds.
+4. Treat the saved context as personal information belonging only to this authenticated user.`,
   });
 
   const stream = await agent.stream(
     {
-      messages: messages.map((message) => {
+      messages: recentMessages.map((message) => {
         if (message.author == "ai") return new AIMessage(message.content);
         else return new HumanMessage(message.content);
       }),
     },
     { streamMode: "messages" },
-  )
+  );
   return stream;
 }

@@ -10,6 +10,7 @@ export const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string(),
   FRONTEND_URL: z.string(),
   OPENROUTER_API_KEY: z.string().trim().min(1),
+  OPENROUTER_MODEL: z.string().trim().min(1).optional(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

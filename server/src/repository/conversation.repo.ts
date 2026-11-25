@@ -22,4 +22,8 @@ export default class ConversationRepo {
   async touch(id: string) {
     await conversationModel.updateOne({ _id: id }, { $set: { updatedAt: new Date() } });
   }
+
+  async updateTitle(id: string, title: string) {
+    await conversationModel.updateOne({ _id: id }, { $set: { title } });
+  }
 }
