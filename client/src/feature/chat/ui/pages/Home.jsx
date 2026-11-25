@@ -9,6 +9,7 @@ import {
   LogOut,
 } from "lucide-react";
 import logo from "../../../../assets/logo.svg";
+import { TextShimmer } from "../../../../components/TextShimmer.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { logOut } from "../../../auth/state/authReducers.jsx";
@@ -263,9 +264,16 @@ const Home = () => {
 
         <section className="scrollbar-hidden flex-1 overflow-y-auto px-4 py-8 pb-2 sm:px-6">
           {loadingConversation && messages.length === 0 ? (
-            <p className="mx-auto max-w-2xl pt-8 text-center text-sm text-zinc-500">
-              Loading conversation…
-            </p>
+            <div className="mx-auto max-w-2xl pt-8 text-center">
+              <TextShimmer
+                className="text-sm text-zinc-400"
+                duration={1.5}
+                baseColor="#71717a"
+                shimmerColor="#ffffff"
+              >
+                Loading conversation…
+              </TextShimmer>
+            </div>
           ) : messages.length === 0 ? (
             <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center pb-12 ">
               <img src={logo} alt="ChatGPT" className="mb-2 h-14 w-14" />
@@ -312,14 +320,32 @@ const Home = () => {
                           className="mt-1 h-7 w-7 shrink-0"
                         />
                         <div className="markdown-content min-w-0 flex-1">
-                          <ReactMarkdown>
-                            {item.content || (isStreaming ? " " : "")}
-                          </ReactMarkdown>
-                          {isStreaming && (
-                            <span
-                              className="streaming-cursor"
-                              aria-label="Assistant is responding"
-                            />
+                          {isStreaming && !item.content ? (
+                            <TextShimmer
+                              className="text-sm font-medium text-zinc-300"
+                              duration={1.5}
+                              baseColor="#71717a"
+                              shimmerColor="#ffffff"
+                            >
+                              Thinking...
+                            </TextShimmer>
+                          ) : (
+                            <>
+                              <ReactMarkdown>{item.content}</ReactMarkdown>
+                              {isStreaming && (
+                                <div className="mt-2">
+                                  <TextShimmer
+                                    as="span"
+                                    className="text-xs font-medium text-zinc-400"
+                                    duration={1.5}
+                                    baseColor="#52525b"
+                                    shimmerColor="#e4e4e7"
+                                  >
+                                    Generating response...
+                                  </TextShimmer>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </>

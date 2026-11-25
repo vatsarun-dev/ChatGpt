@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
 import { logIn } from "../../state/authReducers.jsx";
-import { loginApi } from "../../service/authService.js";
+import { loginApi, extractApiErrorMessage } from "../../service/authService.js";
 import { Eye, EyeOff, Mail, LockKeyhole, ArrowRight } from "lucide-react";
 import logo from "../../../../assets/logo.svg";
+import { TextShimmer } from "../../../../components/TextShimmer.jsx";
 
 const Login = () => {
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState("");
   const navigate = useNavigate();
   const {
     register,
@@ -18,12 +20,15 @@ const Login = () => {
   } = useForm();
 
   const onSubmit = async (data) => {
+    setApiError("");
     try {
-      const user = await loginApi(data);
-      console.log(user);
-      dispatch(logIn(user.data.user));
+      const response = await loginApi(data);
+      dispatch(logIn(response.data.user));
+      navigate("/chat");
     } catch (error) {
-      console.log(error);
+      setApiError(
+        extractApiErrorMessage(error, "Could not sign in. Please try again."),
+      );
     }
   };
 
@@ -169,18 +174,45 @@ const Login = () => {
                 )}
               </div>
 
+              {apiError && (
+                <div
+                  role="alert"
+                  className="rounded-xl border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 text-xs text-red-300"
+                >
+                  {apiError}
+                </div>
+              )}
+
               {/* Login Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="group flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isSubmitting ? "Signing in..." : "Sign in"}
-
-                {!isSubmitting && (
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                {isSubmitting ? (
+                  <TextShimmer
+                    as="span"
+                    className="text-sm font-semibold"
+                    baseColor="#52525b"
+                    shimmerColor="#000000"
+                    duration={1.4}
+                  >
+                    Signing in...
+                  </TextShimmer>
+                ) : (
+                  <>
+                    Sign in
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </>
                 )}
               </button>
+              {isSubmitting && (
+                <p className="text-center text-xs text-zinc-400">
+                  <TextShimmer as="span" duration={1.6}>
+                    Waking up server, this may take a moment...
+                  </TextShimmer>
+                </p>
+              )}
             </form>
 
             {/* Divider */}
@@ -194,6 +226,11 @@ const Login = () => {
             <div className="space-y-3">
               <button
                 type="button"
+                onClick={() =>
+                  setApiError(
+                    "Google sign-in is not configured yet. Please sign in with your email above.",
+                  )
+                }
                 className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] py-3 text-sm font-medium text-zinc-300 transition hover:bg-white/[0.07] hover:text-white"
               >
                 <svg
@@ -226,6 +263,11 @@ const Login = () => {
 
               <button
                 type="button"
+                onClick={() =>
+                  setApiError(
+                    "GitHub sign-in is not configured yet. Please sign in with your email above.",
+                  )
+                }
                 className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] py-3 text-sm font-medium text-zinc-300 transition hover:bg-white/[0.07] hover:text-white"
               >
                 <svg

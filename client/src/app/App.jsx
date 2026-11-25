@@ -1,8 +1,11 @@
-import React from "react";
 import Router from "./router.jsx";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { refreshApi, getMeApi } from "../feature/auth/service/authService.js";
+import {
+  refreshApi,
+  getMeApi,
+  clearAuthTokens,
+} from "../feature/auth/service/authService.js";
 import { logIn, stopAuthLoading } from "../feature/auth/state/authReducers.jsx";
 const App = () => {
   const dispatch = useDispatch();
@@ -13,6 +16,7 @@ const App = () => {
         const user = await getMeApi();
         dispatch(logIn(user.data.user));
       } catch (error) {
+        clearAuthTokens();
         console.log(error);
       } finally {
         dispatch(stopAuthLoading());

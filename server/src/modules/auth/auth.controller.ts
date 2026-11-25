@@ -8,25 +8,31 @@ export default class AuthController {
   private readonly authController = new AuthService();
 
   async loginUserController(req: Request, res: Response): Promise<void> {
-    const user = await this.authController.loginUserService(
-      req.body as LoginUserRequest,
-      res,
-    );
+    const { user, accessToken, refreshToken } =
+      await this.authController.loginUserService(
+        req.body as LoginUserRequest,
+        res,
+      );
 
     res.status(StatusCodes.OK).json({
       message: "User login successfully",
-      user: user,
+      user,
+      accessToken,
+      refreshToken,
     });
   }
 
   async registerUserController(req: Request, res: Response): Promise<void> {
-    const user = await this.authController.registerUserService(
-      req.body as RegisterUserRequest,
-      res,
-    );
+    const { user, accessToken, refreshToken } =
+      await this.authController.registerUserService(
+        req.body as RegisterUserRequest,
+        res,
+      );
     res.status(StatusCodes.CREATED).json({
       message: "User created successfully",
-      user: user,
+      user,
+      accessToken,
+      refreshToken,
     });
   }
 

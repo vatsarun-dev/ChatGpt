@@ -1,19 +1,40 @@
-import { api } from "../../auth/service/authService.js";
+import {
+  api,
+  getAccessToken,
+  refreshApi,
+} from "../../auth/service/authService.js";
 
 export const getConversationsApi = () => api.get("/person1/conversations");
 export const getMessagesApi = (conversationId) =>
   api.get(`/person1/conversations/${conversationId}/messages`);
 
 export async function streamChatApi({ message, conversationId, onConversationId, onText }) {
-  const response = await fetch(`${api.defaults.baseURL}/person1/chat`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message,
-      ...(conversationId ? { conversationId } : {}),
-    }),
-  });
+  const sendChatRequest = () => {
+    const token = getAccessToken();
+    return fetch(`${api.defaults.baseURL}/person1/chat`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        message,
+        ...(conversationId ? { conversationId } : {}),
+      }),
+    });
+  };
+
+  let response = await sendChatRequest();
+
+  if (response.status === 401) {
+    try {
+      await refreshApi();
+      response = await sendChatRequest();
+    } catch {
+      // Let the 401 handler below report the error.
+    }
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));

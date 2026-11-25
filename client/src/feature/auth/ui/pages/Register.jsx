@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
 import { logIn } from "../../state/authReducers.jsx";
 
 import logo from "../../../../assets/logo.svg";
-import { registerApi } from "../../service/authService.js";
+import {
+  registerApi,
+  extractApiErrorMessage,
+} from "../../service/authService.js";
+import { TextShimmer } from "../../../../components/TextShimmer.jsx";
 
 import {
   User,
@@ -20,6 +24,7 @@ import {
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const {
     register,
@@ -33,14 +38,16 @@ const Register = () => {
   const dispatch = useDispatch();
 
   const onSubmit = async (data) => {
+    setApiError("");
     try {
       const { name, email, password } = data;
-      console.log(data)
-      const user = await registerApi({ name, email, password });
-      console.log(user);
-      dispatch(logIn(user.data.user));
+      const response = await registerApi({ name, email, password });
+      dispatch(logIn(response.data.user));
+      navigate("/chat");
     } catch (error) {
-      console.log(error);
+      setApiError(
+        extractApiErrorMessage(error, "Could not create account. Please try again."),
+      );
     }
   };
 
@@ -192,6 +199,10 @@ const Register = () => {
                         value: 8,
                         message: "Password must contain at least 8 characters",
                       },
+                      maxLength: {
+                        value: 128,
+                        message: "Password must be 128 characters or fewer",
+                      },
                     })}
                   />
 
@@ -302,18 +313,45 @@ const Register = () => {
                 </p>
               )}
 
+              {apiError && (
+                <div
+                  role="alert"
+                  className="rounded-xl border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 text-xs text-red-300"
+                >
+                  {apiError}
+                </div>
+              )}
+
               {/* Submit */}
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isSubmitting ? "Creating account..." : "Create account"}
-
-                {!isSubmitting && (
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                {isSubmitting ? (
+                  <TextShimmer
+                    as="span"
+                    className="text-sm font-semibold"
+                    baseColor="#52525b"
+                    shimmerColor="#000000"
+                    duration={1.4}
+                  >
+                    Creating account...
+                  </TextShimmer>
+                ) : (
+                  <>
+                    Create account
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </>
                 )}
               </button>
+              {isSubmitting && (
+                <p className="text-center text-xs text-zinc-400">
+                  <TextShimmer as="span" duration={1.6}>
+                    Waking up server, this may take a moment...
+                  </TextShimmer>
+                </p>
+              )}
             </form>
 
             {/* Divider */}
@@ -329,6 +367,11 @@ const Register = () => {
             <div className="space-y-3">
               <button
                 type="button"
+                onClick={() =>
+                  setApiError(
+                    "Google sign-up is not configured yet. Please register with your email above.",
+                  )
+                }
                 className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] py-3 text-sm font-medium text-zinc-300 transition hover:bg-white/[0.07] hover:text-white"
               >
                 <svg
@@ -361,6 +404,11 @@ const Register = () => {
 
               <button
                 type="button"
+                onClick={() =>
+                  setApiError(
+                    "GitHub sign-up is not configured yet. Please register with your email above.",
+                  )
+                }
                 className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] py-3 text-sm font-medium text-zinc-300 transition hover:bg-white/[0.07] hover:text-white"
               >
                 <svg

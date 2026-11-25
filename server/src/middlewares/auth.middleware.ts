@@ -8,7 +8,11 @@ export default function authMiddleware(
   next: NextFunction,
 ) {
   try {
-    const token = req.cookies.access_token;
+    const authHeader = req.headers.authorization;
+    const bearerToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : undefined;
+    const token = req.cookies.access_token || bearerToken;
     if (!token) {
       return res.status(401).json({ message: "Authentication required. Please sign in again." });
     }

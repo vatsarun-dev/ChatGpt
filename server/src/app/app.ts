@@ -6,6 +6,7 @@ import chatRoutes from "../modules/chat/chat.routes.ts";
 
 export default function createApp() {
   const app = express();
+  app.set("trust proxy", 1);
   securityMiddleware(app);
 
   app.use("/api/auth", authRoutes);

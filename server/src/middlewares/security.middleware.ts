@@ -10,11 +10,16 @@ import morgan from "morgan";
 import env from "../config/env.ts";
 export default function securityMiddleware(app: Express) {
   const frontendOrigin = env.FRONTEND_URL.trim().replace(/\/+$/, "");
-  const allowedOrigins = [
-    frontendOrigin,
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-  ].filter(Boolean);
+  const allowedOrigins = Array.from(
+    new Set(
+      [
+        frontendOrigin,
+        "https://chat-gpt-vert-six.vercel.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+      ].filter(Boolean),
+    ),
+  );
   app.use(morgan("dev"));
   app.use(express.json({ limit: "3mb" }));
   app.use(express.urlencoded({ extended: true, limit: "3mb" }));

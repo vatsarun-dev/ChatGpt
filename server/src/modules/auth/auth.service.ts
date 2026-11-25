@@ -7,6 +7,8 @@ import type {
 } from "../../types/response.ts";
 import * as token from "../../utils/generateToken.ts";
 import * as error from "../../shared/error/globalError.ts";
+import ApiError from "../../shared/error/ApiError.ts";
+import { StatusCodes } from "http-status-codes";
 import { appConstant } from "../../constant/appConstant.ts";
 import jwt from "jsonwebtoken";
 import env from "../../config/env.ts";
@@ -26,7 +28,7 @@ export default class AuthService {
   private async issueAuthCookies(
     user: AuthResponseUser,
     res: Response,
-  ): Promise<void> {
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const accessToken = token.generateAccessToken({
       id: String(user.id),
       email: user.email,
@@ -40,29 +42,31 @@ export default class AuthService {
 
     res.cookie("access_token", accessToken, appConstant.cookie.accessToken);
     res.cookie("refresh_token", refreshToken, appConstant.cookie.refreshToken);
+    return { accessToken, refreshToken };
   }
 
   async registerUserService(req: RegisterUserRequest, res: Response) {
     const { name, email, password } = req;
     if (!name || !email || !password)
-      throw new Error("all fields are required");
+      throw new ApiError(StatusCodes.BAD_REQUEST, "all fields are required");
 
     const isExisted = await this.authService.findByEmail(String(email));
     if (isExisted)
       throw new error.ALLREADYEXIST("the user is already register");
     const user = await this.authService.createUser({ name, email, password });
     const responseUser = this.toResponseUser(user);
-    await this.issueAuthCookies(responseUser, res);
-    return responseUser;
+    const tokens = await this.issueAuthCookies(responseUser, res);
+    return { user: responseUser, ...tokens };
   }
 
   async loginUserService(
     req: LoginUserRequest,
     res: Response,
-  ): Promise<AuthResponseUser> {
+  ): Promise<{ user: AuthResponseUser; accessToken: string; refreshToken: string }> {
     const { email, password } = req;
 
-    if (!email || !password) throw new Error("please fill all the details");
+    if (!email || !password)
+      throw new ApiError(StatusCodes.BAD_REQUEST, "please fill all the details");
 
     const user = await this.authService.findByEmail(String(email));
 
@@ -77,18 +81,26 @@ export default class AuthService {
     if (!compare) throw new error.UNAUTHORIZED("the password  is incorrect");
 
     const responseUser = this.toResponseUser(user);
-    await this.issueAuthCookies(responseUser, res);
+    const tokens = await this.issueAuthCookies(responseUser, res);
 
-    return responseUser;
+    return { user: responseUser, ...tokens };
   }
 
   async refreshPageService(req: Request, res: Response) {
-    const refresh_token = req.cookies.refresh_token;
+    const refresh_token =
+      req.cookies?.refresh_token ||
+      (typeof req.body?.refreshToken === "string" ? req.body.refreshToken : "");
     if (!refresh_token) throw new error.UNAUTHORIZED("refresh token not found");
-    const user = jwt.verify(refresh_token, env.JWT_REFRESH_SECRET) as {
-      id: string;
-      email: string;
-    };
+
+    let user: { id: string; email: string };
+    try {
+      user = jwt.verify(refresh_token, env.JWT_REFRESH_SECRET) as {
+        id: string;
+        email: string;
+      };
+    } catch {
+      throw new error.UNAUTHORIZED("invalid refresh token");
+    }
     if (!user) throw new error.UNAUTHORIZED("invalid refresh token");
     const access_token = token.generateAccessToken({
       id: String(user.id),

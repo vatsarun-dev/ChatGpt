@@ -24,8 +24,8 @@ export async function getConversationTitle({
   ]);
   const content = Array.isArray(response.content)
     ? response.content
-        .map((part) => (typeof part === "string" ? part : "text" in part ? part.text : ""))
-        .join("")
+      .map((part) => (typeof part === "string" ? part : "text" in part ? part.text : ""))
+      .join("")
     : String(response.content);
   const title = content.trim().replace(/^['"`]+|['"`]+$/g, "").slice(0, 30);
   return title || message.trim().slice(0, 30) || "New conversation";
@@ -63,6 +63,6 @@ Memory rules:
       }),
     },
     { streamMode: "messages" },
-  );
+  )
   return stream;
 }
