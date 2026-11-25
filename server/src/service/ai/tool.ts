@@ -3,15 +3,21 @@ import { z } from "zod";
 
 import ContextRepo from "../../repository/context.repo.ts";
 
-/** Bind the memory update tool to the authenticated user. */
-export function createUpdateMemoryTool(userId: string) {
+/** Bind both memory tools to the authenticated user. */
+export function createMemoryTools(userId: string) {
   const contextRepo = new ContextRepo();
+  const getMemory = tool(
+    async () => contextRepo.readonlyContext(userId),
+    {
+      name: "getMemory",
+      description: "Read the authenticated user's saved long-term facts and preferences before answering.",
+      schema: z.object({}),
+    },
+  );
 
   const updateMemory = tool(
-    async ({ description }) => {
-      await contextRepo.createContext({ userId, description });
-      return "Saved user context.";
-    },
+    async ({ description }) =>
+      contextRepo.createContext({ userId, description }),
     {
       name: "updateMemory",
       description:
@@ -22,5 +28,5 @@ export function createUpdateMemoryTool(userId: string) {
     },
   );
 
-  return [updateMemory];
+  return [getMemory, updateMemory];
 }

@@ -19,57 +19,37 @@ export default class ChatService {
     // A valid JWT can outlive the account in the database it was issued from
     // (for example, after switching the deployed database). Do not start an
     // AI request or write conversation data for a missing account.
-    const [existingUser, existingConversation, priorMessages] = await Promise.all([
-      this.userRepo.findById(user.id),
-      conversationId
-        ? this.conversationRepo.findById(conversationId)
-        : Promise.resolve(null),
-      conversationId
-        ? this.messageRepo.findByConversationId(conversationId)
-        : Promise.resolve([]),
-    ]);
-
+    const existingUser = await this.userRepo.findById(user.id);
     if (!existingUser) {
       throw new error.UNAUTHORIZED("User not found. Please sign in again.");
     }
 
     let activeConversationId = conversationId;
     if (!activeConversationId) {
-      const fallbackTitle =
-        message.trim().slice(0, 30) || "New conversation";
+      const title = await getConversationTitle({ message });
       const conversation = await this.conversationRepo.createConversation({
-        title: fallbackTitle,
+        title,
         userId: user.id,
       });
       activeConversationId = String(conversation._id);
-
-      // Generate the AI title in the background so it never delays the stream.
-      void getConversationTitle({ message })
-        .then((title) =>
-          this.conversationRepo.updateTitle(activeConversationId!, title),
-        )
-        .catch(() => {});
-    } else if (
-      !existingConversation ||
-      String(existingConversation.userId) !== user.id
-    ) {
-      res.status(404).json({ message: "Conversation not found" });
-      return;
+    } else {
+      const conversation =
+        await this.conversationRepo.findById(activeConversationId);
+      if (!conversation || String(conversation.userId) !== user.id) {
+        res.status(404).json({ message: "Conversation not found" });
+        return;
+      }
     }
 
-    const promptMessages = [
-      ...priorMessages,
-      { author: "user" as const, content: message },
-    ];
+    await this.messageRepo.createMessage({
+      content: message,
+      author: "user",
+      conversationId: activeConversationId,
+    });
 
-    const [, stream] = await Promise.all([
-      this.messageRepo.createMessage({
-        content: message,
-        author: "user",
-        conversationId: activeConversationId,
-      }),
-      getStream({ messages: promptMessages, userId: user.id }),
-    ]);
+    const messages =
+      await this.messageRepo.findByConversationId(activeConversationId);
+    const stream = await getStream({ messages, userId: user.id });
 
     res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
     res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -80,13 +60,7 @@ export default class ChatService {
     let aiMessage: string = "";
 
     try {
-      for await (const [token] of stream) {
-        if (
-          typeof token?.getType === "function" &&
-          token.getType() !== "ai"
-        ) {
-          continue;
-        }
+      for await (const [token, metadata] of stream) {
         const content = token.content;
         if (typeof content !== "string" || !content) continue;
 
@@ -98,14 +72,12 @@ export default class ChatService {
         res.write(`${event}\n\n`);
         (res as Response & { flush?: () => void }).flush?.();
       }
-      await Promise.all([
-        this.messageRepo.createMessage({
-          content: aiMessage,
-          author: "ai",
-          conversationId: activeConversationId,
-        }),
-        this.conversationRepo.touch(activeConversationId),
-      ]);
+      await this.messageRepo.createMessage({
+        content: aiMessage,
+        author: "ai",
+        conversationId: activeConversationId,
+      });
+      await this.conversationRepo.touch(activeConversationId);
       res.end();
     } catch (error) {
       // Once SSE headers/chunks have been sent, Express cannot send a JSON error
