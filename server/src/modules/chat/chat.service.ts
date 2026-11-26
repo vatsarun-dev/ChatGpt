@@ -60,7 +60,13 @@ export default class ChatService {
     let aiMessage: string = "";
 
     try {
-      for await (const [token, metadata] of stream) {
+      for await (const [token] of stream) {
+        if (
+          typeof token?.getType === "function" &&
+          token.getType() !== "ai"
+        ) {
+          continue;
+        }
         const content = token.content;
         if (typeof content !== "string" || !content) continue;
 

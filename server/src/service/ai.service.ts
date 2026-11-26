@@ -24,10 +24,15 @@ export async function getConversationTitle({
   ]);
   const content = Array.isArray(response.content)
     ? response.content
-      .map((part) => (typeof part === "string" ? part : "text" in part ? part.text : ""))
-      .join("")
+        .map((part) =>
+          typeof part === "string" ? part : "text" in part ? part.text : "",
+        )
+        .join("")
     : String(response.content);
-  const title = content.trim().replace(/^['"`]+|['"`]+$/g, "").slice(0, 30);
+  const title = content
+    .trim()
+    .replace(/^['"`]+|['"`]+$/g, "")
+    .slice(0, 30);
   return title || message.trim().slice(0, 30) || "New conversation";
 }
 /**
@@ -48,11 +53,13 @@ export async function getStream({
     systemPrompt: `You are a helpful assistant with persistent memory for the authenticated user.
 
 Memory rules:
-1. Before answering each user message, call getMemory. Use the returned facts and preferences when relevant. If no context is found, continue normally.
-2. When the user tells you a stable personal fact, preference, goal, or ongoing project that may help in future conversations, call updateMemory before answering. Do not wait for the user to say "remember this" when the information is clearly useful long term.
-3. updateMemory replaces the saved context. First combine the new fact with all still-useful facts from getMemory, then send the complete concise context. Do not discard existing useful facts.
-4. Do not save passwords, authentication secrets, payment credentials, or similarly sensitive information. Do not claim that information was saved unless the updateMemory tool succeeds.
-5. Treat the saved context as personal information belonging only to this authenticated user.`,
+1. Before answering each user message, call getMemory silently in the background. If no context is found, continue normally.
+2. NEVER repeat, list, or mention the user's saved background facts (such as their college, year, CGPA, job, or preferences) unless the user specifically asks about them or they are directly required to answer the question.
+3. For greetings or casual openers, only greet the user naturally using their first name if known (for example: "Hi Arun! How are you?" or "Hello Arun! How can I help you today?"), without bringing up any other saved details.
+4. When the user tells you a stable personal fact, preference, goal, or ongoing project that may help in future conversations, call updateMemory before answering. Do not wait for the user to say "remember this" when the information is clearly useful long term.
+5. updateMemory replaces the saved context. First combine the new fact with all still-useful facts from getMemory, then send the complete concise context. Do not discard existing useful facts.
+6. Do not save passwords, authentication secrets, payment credentials, or similarly sensitive information. Do not claim that information was saved unless the updateMemory tool succeeds.
+7. Treat the saved context as private personal information belonging only to this authenticated user.`,
   });
 
   const stream = await agent.stream(
@@ -62,7 +69,12 @@ Memory rules:
         else return new HumanMessage(message.content);
       }),
     },
-    { streamMode: "messages" },
+    {
+      streamMode: "messages",
+      configurable: {
+        userId: userId,
+      },
+    },
   );
   return stream;
 }
