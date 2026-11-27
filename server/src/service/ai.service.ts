@@ -1,7 +1,7 @@
 import { ChatOpenRouter } from "@langchain/openrouter";
 import { createAgent, HumanMessage, AIMessage } from "langchain";
 import type { Message } from "../types/chat.ts";
-import { createMemoryTools } from "../service/ai/tool.ts";
+import { createMemoryTools, getAcessInternet } from "../service/ai/tool.ts";
 import env from "../config/env.ts";
 const smallModel = new ChatOpenRouter({
   model: "nvidia/nemotron-3-ultra-550b-a55b:free",
@@ -47,9 +47,13 @@ export async function getStream({
   messages: Message[];
   userId: string;
 }) {
+  const tools: NonNullable<Parameters<typeof createAgent>[0]["tools"]> = [
+    ...createMemoryTools(userId),
+    getAcessInternet,
+  ];
   const agent = createAgent({
     model: smallModel,
-    tools: createMemoryTools(userId),
+    tools,
     systemPrompt: `You are a helpful assistant with persistent memory for the authenticated user.
 
 Memory rules:
@@ -59,7 +63,11 @@ Memory rules:
 4. When the user tells you a stable personal fact, preference, goal, or ongoing project that may help in future conversations, call updateMemory before answering. Do not wait for the user to say "remember this" when the information is clearly useful long term.
 5. updateMemory replaces the saved context. First combine the new fact with all still-useful facts from getMemory, then send the complete concise context. Do not discard existing useful facts.
 6. Do not save passwords, authentication secrets, payment credentials, or similarly sensitive information. Do not claim that information was saved unless the updateMemory tool succeeds.
-7. Treat the saved context as private personal information belonging only to this authenticated user.`,
+7. Treat the saved context as private personal information belonging only to this authenticated user.
+8. when user ask for something you can use the getAcessInternet tool to get the information from the web.
+9. if you have the tool to get the information from the web, use it to get the information from the web.
+10.when you are answering the user, you can use the information from the web to answer the question.
+`,
   });
 
   const stream = await agent.stream(

@@ -2,14 +2,16 @@ import { tool } from "langchain";
 import { z } from "zod";
 
 import ContextRepo from "../../repository/context.repo.ts";
-import { config } from "dotenv";
+import { getSearchFromWeb } from "../web.service.ts";
 
 /** Bind both memory tools to the authenticated user. */
 export function createMemoryTools(userId: string) {
   const contextRepo = new ContextRepo();
   const getMemory = tool(
-    async ({}, config) =>
-      contextRepo.readonlyContext(config?.configurable?.userId),
+    async (_input, config) =>
+      contextRepo.readonlyContext(
+        String(config?.configurable?.userId ?? userId),
+      ),
     {
       name: "getMemory",
       description:
@@ -21,7 +23,7 @@ export function createMemoryTools(userId: string) {
   const updateMemory = tool(
     async ({ description }: { description: string }, config) =>
       contextRepo.createContext({
-        userId: config?.configurable?.userId,
+        userId: String(config?.configurable?.userId ?? userId),
         description,
       }),
     {
@@ -36,3 +38,15 @@ export function createMemoryTools(userId: string) {
 
   return [getMemory, updateMemory];
 }
+
+export const getAcessInternet = tool(
+  async ({ query }: { query: string }) => getSearchFromWeb({ query }),
+  {
+    name: "getAcessInternet",
+    description:
+      "Search the web for current events, live data, or facts not already known.",
+    schema: z.object({
+      query: z.string().min(1).describe("The web search query"),
+    }),
+  },
+);
